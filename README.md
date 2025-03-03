@@ -1,36 +1,33 @@
 # Meme Generator
-Simple meme generator created for Udacity Intermediate Python Nanodegree program.
+A simple meme generator was created for the Udacity Intermediate Python Nanodegree program.
 
 ## Getting started
 
-This project uses python virtual environment.
+This project uses the Python virtual environment.
 
-### Prequistites
+### Prerequisites
 
-**poppler-utils** is installed from Ubuntu in order to use the **pdftotext**
+**poppler-utils** is installed from Ubuntu to use the **pdftotext**
 
-'''bash
+```bash
 sudo apt install poppler-utils
-'''
+```
 
 ### Installation 
 
 1. Clone the repo
-'''bash
+```bash
 git clone https://github.com/huydang33/meme-generator.git
-'''
+```
 
 2. Setup virtual environment
-
-'''bash
+```bash
 cd meme-generator
 python3 -m venv .venv
 source .venv/bin/activate
-'''
+```
 
-3. Install python dependencies
-
-'''bash
+3. Install Python dependencies
+```bash
 pip install -r requirements.txt
-'''
-
+```

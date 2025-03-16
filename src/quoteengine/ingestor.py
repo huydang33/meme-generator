@@ -32,8 +32,9 @@ class Ingestor_csv(IngestorInterface):
         if not cls.can_ingest(path):
             raise ValueError(f"File Type not supported for {path}")
         
-        file = csv.reader(open(path, 'r'))
-        return [QuoteModel(row[0], row[1]) for row in file]
+        with open(path, mode="r", newline="", encoding="utf-8") as file:
+            reader = csv.DictReader(file)
+            return [QuoteModel(row['body'], row['author']) for row in reader]
 
 
 class Ingestor_docx(IngestorInterface):
@@ -51,7 +52,7 @@ class Ingestor_docx(IngestorInterface):
             raise ValueError(f"File Type not supported for {path}")
 
         file = docx.Document(path)
-        return [QuoteModel(paragraph.text.split(' - ')[0], paragraph.text.split(' - ')[1]) for paragraph in file.paragraphs]
+        return [QuoteModel(paragraph.text.split(' - ')[0], paragraph.text.split(' - ')[1]) for paragraph in file.paragraphs if ' - ' in paragraph.text]
 
 class Ingestor_pdf(IngestorInterface):
     """Import quotes from pdf files"""
@@ -64,15 +65,16 @@ class Ingestor_pdf(IngestorInterface):
     
     def __extract_text(self, pdf_path):
         result = subprocess.run(["pdftotext", pdf_path, "-"], capture_output=True, text=True)
-        return result.stdout
+        return result.stdout.strip().split('\n')
 
     @classmethod
     def parse(cls, path: str) -> List[QuoteModel]:
         if not cls.can_ingest(path):
             raise ValueError(f"File Type not supported for {path}")
         
-        file = cls.__extract_text(path)
-        return [QuoteModel(row[0], row[1]) for row in file]
+        file = cls.__extract_text(cls, path)
+        lines = [line.split(' - ') for line in file]
+        return [QuoteModel(line[0], line[1]) for line in lines if ' - ' in line]
 
 class Ingestor_txt(IngestorInterface):
     """Import quotes from txt files"""
@@ -89,7 +91,8 @@ class Ingestor_txt(IngestorInterface):
             raise ValueError(f"File Type not supported for {path}")
         
         file = open(path, 'r')
-        return [QuoteModel(row[0], row[1]) for row in file]
+        lines = [line.split(' - ') for line in file]
+        return [QuoteModel(row[0], row[1]) for row in lines]
     
 class Ingestor:
     """Ingestor class that imports quotes from different file types."""

@@ -1,7 +1,7 @@
 import tempfile
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 class MemeGenerator:
     """MemeGenerator generates a meme from an image and text.
@@ -50,13 +50,23 @@ class MemeGenerator:
         new_h = self.image.height * aspect_ratio
         self.image = self.image.resize((int(new_w), int(new_h)))
 
-        position_body = (250, 450)
-        position_author = (250, 400)
+        # Load fonts
+        font_body = ImageFont.truetype("memeengine/arial.ttf", 20)
+        font_author = ImageFont.truetype("memeengine/arial.ttf", 25)
 
-
+        # Prepare text and author
         d1 = ImageDraw.Draw(self.image)
+
+        # Calculate position for body text (center vertically with 30px from the bottom)
+        text_width, text_height = d1.textsize(text, font=font_body)
+        position_body = ((self.image.width - text_width) / 2, self.image.height - text_height - 30)
+
+        # Calculate position for author text (30px above body)
+        author_width, author_height = d1.textsize(author, font=font_author)
+        position_author = ((self.image.width - author_width) / 2, position_body[1] - author_height - 30)
+
         # Draw quote text on image
-        d1.text(position_body, text, anchor='rb', fill=(255, 255, 255))
-        d1.text(position_author, author, anchor='rt', fill=(255, 255, 255))
+        d1.text(position_body, text, anchor='rb', font=font_body, fill=(255, 255, 255))
+        d1.text(position_author, author, anchor='rb', font=font_author, fill=(255, 255, 255))
 
         return self.__save_image()

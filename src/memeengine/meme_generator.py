@@ -1,4 +1,5 @@
 import tempfile
+import textwrap
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -46,9 +47,16 @@ class MemeGenerator:
 
         # Resizing the image to width 500 and height scaled proportionally
         aspect_ratio = width / self.image.width
-        new_w = self.image.width * aspect_ratio
-        new_h = self.image.height * aspect_ratio
-        self.image = self.image.resize((int(new_w), int(new_h)))
+        new_w = int(self.image.width * aspect_ratio)
+        new_h = int(self.image.height * aspect_ratio)
+        self.image = self.image.resize((int(new_w), int(new_h)), Image.NEAREST)
+
+        wrapper = textwrap.TextWrapper(width=25)
+        words = wrapper.wrap(text=text)
+        new_quote = ""
+        for w in words[:-1]:
+            new_quote = new_quote + w + '\n'
+        new_quote += words[-1]
 
         # Load fonts
         font_body = ImageFont.truetype("memeengine/arial.ttf", 20)
@@ -56,17 +64,12 @@ class MemeGenerator:
 
         # Prepare text and author
         d1 = ImageDraw.Draw(self.image)
-
-        # Calculate position for body text (center vertically with 30px from the bottom)
-        text_width, text_height = d1.textsize(text, font=font_body)
-        position_body = ((self.image.width - text_width) / 2, self.image.height - text_height - 30)
-
-        # Calculate position for author text (30px above body)
-        author_width, author_height = d1.textsize(author, font=font_author)
-        position_author = ((self.image.width - author_width) / 2, position_body[1] - author_height - 30)
-
-        # Draw quote text on image
-        d1.text(position_body, text, anchor='rb', font=font_body, fill=(255, 255, 255))
-        d1.text(position_author, author, anchor='rb', font=font_author, fill=(255, 255, 255))
+        d1.text((140, 30), new_quote, font=font_body, fill="black")
+        d1.text(
+            (140,
+            new_h - 35),
+            f" - {author}",
+            font=font_author,
+            fill="black")
 
         return self.__save_image()

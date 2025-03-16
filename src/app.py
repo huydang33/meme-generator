@@ -63,20 +63,13 @@ def meme_post():
     """ Create a user defined meme """
     # 1. Use requests to save the image from the image_url
     #    form param to a temp local file.
-    req = requests.get(request.form['image_url'], allow_redirects=True, stream=True)
-    # 2. Use the meme object to generate a meme using this temp
-    #    file and the body and author form paramaters.
-    tmp_file = tempfile.NamedTemporaryFile(prefix='meme-gen-web-dl-', suffix='.jpg', delete=False).name
-    try:
-        Image.open(req.raw).save(tmp_file)
-    except OSError:
-        raise ValueError(f"cannot convert file to jpg")
+    req_img = requests.get(request.form['image_url'])
     quote = QuoteModel(body=request.form['body'], author=request.form['author'])
-    path = meme.make_meme(tmp_file, quote.body, quote.author)
+    temp_path = f"./tmp/{random.randint(0, 100000)}.png"
+    _ = open(temp_path, 'wb').write(req_img.content)
+    path = meme.make_meme(temp_path, quote.body, quote.author)
     # 3. Remove the temporary saved image.
-    os.unlink(tmp_file)
-    
-    path = None
+    os.remove(temp_path)
 
     return render_template('meme.html', path=path)
 

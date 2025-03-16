@@ -53,7 +53,7 @@ Note: --body and --author are required together. Inserting only one of these par
 Example: 
 
 ```bash
-python meme.py --path ./_data/photos/dog/corgi.jpg --body "Python is fun!" --author "Jonathan Hing".
+python meme.py --path ./_data/photos/dog/xander_1.jpg --body "WOOF!" --author "Xander 1".
 ```
 
 5. Run by Flash
@@ -89,4 +89,4 @@ _____
 
 # Contributors :sparkles:
 
-- Sample [data](./_data) for quotes and images, as well as [html templates](./templates) provided by Udacity.
+- Sample [data](./src/_data) for quotes and images, as well as [html templates](./templates) provided by Udacity.

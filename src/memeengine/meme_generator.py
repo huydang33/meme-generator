@@ -117,7 +117,7 @@ class MemeGenerator:
             suffix=".jpg", delete=False
         ).name
         self.image.save(full_output_path)
-        return str(full_output_path)
+        return str(self.output_dir) + "/" + str(Path(full_output_path).name)
 
     def make_meme(self, img_path: str, text: str,
                   author: str, width: int = 500) -> str:

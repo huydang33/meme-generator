@@ -1,19 +1,20 @@
 """
 Meme Generator Module.
 
-This module defines the MemeGenerator class that is responsible for generating 
+This module defines the MemeGenerator class that is responsible for generating
 memes from images by overlaying text and author information.
 
-The MemeGenerator class provides methods for loading an image, resizing it, adding the quote text 
-and author to the image, and saving the generated meme.
+The MemeGenerator class provides methods for loading an image, resizing it,
+adding the quote text and author to the image,
+finally saving the generated meme.
 
 Usage:
-    To generate a meme, instantiate the MemeGenerator class with an output 
-    directory, then call the make_meme method with the path to an image, 
+    To generate a meme, instantiate the MemeGenerator class with an output
+    directory, then call the make_meme method with the path to an image,
     a quote, and the author's name.
 
 Classes:
-    MemeGenerator: A class that provides functionality for creating memes by 
+    MemeGenerator: A class that provides functionality for creating memes by
                   adding text and author information to an image.
 
 Functions:
@@ -32,9 +33,9 @@ class MemeGenerator:
     """
     MemeGenerator generates a meme from an image and text.
 
-    This class provides functionality to generate memes by overlaying text 
-    and author information on an image. It can either generate a meme from 
-    initialized arguments or by setting the output directory and calling the 
+    This class provides functionality to generate memes by overlaying text
+    and author information on an image. It can either generate a meme from
+    initialized arguments or by setting the output directory and calling the
     make_meme method to get back the processed meme image.
 
     Attributes:
@@ -45,7 +46,7 @@ class MemeGenerator:
         """
         Initialize the MemeGenerator with the specified output directory.
 
-        :param output_dir: Directory where the generated meme images will be saved.
+        :param output_dir: Output directory to save the generated meme images.
         """
         self.output_dir = Path(output_dir)
 
@@ -75,10 +76,10 @@ class MemeGenerator:
         """
         wrapper = textwrap.TextWrapper(width=width)
         return "\n".join(wrapper.wrap(text))
-    
+
     def add_text_to_image(self, text: str, author: str, new_h: int):
         """Add the given text and author to the image at random positions.
-        
+
         :param text: The text to be overlayed on the image.
         :param author: The author of the quote to be overlayed on the image.
         :param new_h: The new height of the image after resizing.
@@ -98,7 +99,8 @@ class MemeGenerator:
 
         # Add the wrapped text and author to the image
         draw.text((text_x, text_y), text, font=font_body, fill="black")
-        draw.text((author_x, author_y), f"- {author}", font=font_author, fill="black")
+        draw.text((author_x, author_y), f"- {author}",
+                  font=font_author, fill="black")
 
     def __save_image(self) -> str:
         """
@@ -111,25 +113,26 @@ class MemeGenerator:
         """
         self.output_dir.mkdir(parents=True, exist_ok=True)
         full_output_path = tempfile.NamedTemporaryFile(
-            dir=self.output_dir, prefix='meme-generator-',
-            suffix='.jpg', delete=False
+            dir=self.output_dir, prefix="meme-generator-",
+            suffix=".jpg", delete=False
         ).name
         self.image.save(full_output_path)
         return str(full_output_path)
 
-    def make_meme(self, img_path: str, text: str, author: str, width: int = 500) -> str:
+    def make_meme(self, img_path: str, text: str,
+                  author: str, width: int = 500) -> str:
         """
         Generate a meme by overlaying the given text and author on the image.
 
-        Resize the image to the specified width while maintaining the aspect 
-        ratio. Text is wrapped to fit within the image, and both the text and 
+        Resize the image to the specified width while maintaining the aspect
+        ratio. Text is wrapped to fit within the image, and both the text and
         author are drawn on the image.
 
         :param img_path: Path to the image file.
         :param text: Text to be overlayed on the image.
         :param author: Author of the quote to be overlayed on the image.
         :param width: Desired width of the output meme image (default: 500).
-        
+
         :return: The path of the saved meme image.
         """
         # Load the image

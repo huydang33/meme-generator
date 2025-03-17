@@ -14,6 +14,7 @@ Usage:
     or display the quote in a formatted way.
 """
 
+
 class QuoteModel:
     """A class to encapsulate a quote with its body and author.
 

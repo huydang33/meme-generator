@@ -8,7 +8,7 @@ class QuoteModel:
         """
         self.body = body
         self.author = author
-    
+
     def __repr__(self):
         """Retun a string representation of the quote."""
         return f'"{self.body}" - {self.author}'

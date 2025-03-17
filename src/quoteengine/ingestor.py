@@ -1,106 +1,123 @@
 from typing import List
 from .quote_model import QuoteModel
 from abc import ABC, abstractmethod
-
 import subprocess
-
 import csv
 import docx
 
-# The IngestorInterface class is an abstract base class that defines two class methods: can_ingest and parse.
+
+# Abstract base class for different ingestors
 class IngestorInterface(ABC):
     @classmethod
+    @abstractmethod
     def can_ingest(cls, path: str) -> bool:
+        """Check if the file type can be ingested."""
         pass
 
     @classmethod
+    @abstractmethod
     def parse(cls, path: str) -> List[QuoteModel]:
+        """Parse file and return a list of QuoteModel instances."""
         pass
 
-class Ingestor_csv(IngestorInterface):
-    """Import quotes from csv files"""
+
+class IngestorCSV(IngestorInterface):
+    """Ingest quotes from CSV files."""
     @classmethod
     def can_ingest(cls, path: str) -> bool:
-        """Return True if the file is a csv file."""
-        if path.endswith('.csv'):
-            return True
-        return False
+        return path.endswith('.csv')
 
     @classmethod
     def parse(cls, path: str) -> List[QuoteModel]:
-        """Return a list of QuoteModel objects from a csv file."""
         if not cls.can_ingest(path):
-            raise ValueError(f"File Type not supported for {path}")
-        
+            raise ValueError(f"Unsupported file type: {path}")
+
+        quotes = []
         with open(path, mode="r", newline="", encoding="utf-8") as file:
             reader = csv.DictReader(file)
-            return [QuoteModel(row['body'], row['author']) for row in reader]
+            for row in reader:
+                if 'body' in row and 'author' in row:
+                    quotes.append(QuoteModel(row['body'], row['author']))
+        return quotes
 
 
-class Ingestor_docx(IngestorInterface):
-    """Import quotes from docx files"""
+class IngestorDOCX(IngestorInterface):
+    """Ingest quotes from DOCX files."""
     @classmethod
     def can_ingest(cls, path: str) -> bool:
-        """Return True if the file is a docx file."""
-        if path.endswith('.docx'):
-            return True
-        return False
+        return path.endswith('.docx')
 
     @classmethod
     def parse(cls, path: str) -> List[QuoteModel]:
         if not cls.can_ingest(path):
-            raise ValueError(f"File Type not supported for {path}")
+            raise ValueError(f"Unsupported file type: {path}")
 
-        file = docx.Document(path)
-        return [QuoteModel(paragraph.text.split(' - ')[0], paragraph.text.split(' - ')[1]) for paragraph in file.paragraphs if ' - ' in paragraph.text]
+        quotes = []
+        doc = docx.Document(path)
+        for para in doc.paragraphs:
+            if ' - ' in para.text:
+                parts = para.text.rsplit(' - ', 1)
+                if len(parts) == 2:
+                    quotes.append(QuoteModel(parts[0].strip(),
+                                             parts[1].strip()))
+        return quotes
 
-class Ingestor_pdf(IngestorInterface):
-    """Import quotes from pdf files"""
+
+class IngestorPDF(IngestorInterface):
+    """Ingest quotes from PDF files using `pdftotext`."""
     @classmethod
     def can_ingest(cls, path: str) -> bool:
-        """Return True if the file is a pdf file."""
-        if path.endswith('.pdf'):
-            return True
-        return False
-    
-    def __extract_text(self, pdf_path):
-        result = subprocess.run(["pdftotext", pdf_path, "-"], capture_output=True, text=True)
+        return path.endswith('.pdf')
+
+    @staticmethod
+    def __extract_text(pdf_path: str) -> List[str]:
+        """Extract text from PDF using `pdftotext`."""
+        result = subprocess.run(["pdftotext", pdf_path, "-"],
+                                capture_output=True, text=True)
         return result.stdout.strip().split('\n')
 
     @classmethod
     def parse(cls, path: str) -> List[QuoteModel]:
         if not cls.can_ingest(path):
-            raise ValueError(f"File Type not supported for {path}")
-        
-        file = cls.__extract_text(cls, path)
-        lines = [line.split(' - ') for line in file]
-        return [QuoteModel(line[0], line[1]) for line in lines if ' - ' in line]
+            raise ValueError(f"Unsupported file type: {path}")
 
-class Ingestor_txt(IngestorInterface):
-    """Import quotes from txt files"""
+        quotes = []
+        lines = cls.__extract_text(path)
+        for line in lines:
+            parts = line.rsplit(' - ', 1)
+            if len(parts) == 2:
+                quotes.append(QuoteModel(parts[0].strip(), parts[1].strip()))
+        return quotes
+
+
+class IngestorTXT(IngestorInterface):
+    """Ingest quotes from TXT files."""
     @classmethod
     def can_ingest(cls, path: str) -> bool:
-        """Return True if the file is a txt file."""
-        if path.endswith('.txt'):
-            return True
-        return False
+        return path.endswith('.txt')
 
     @classmethod
     def parse(cls, path: str) -> List[QuoteModel]:
         if not cls.can_ingest(path):
-            raise ValueError(f"File Type not supported for {path}")
-        
-        file = open(path, 'r')
-        lines = [line.split(' - ') for line in file]
-        return [QuoteModel(row[0], row[1]) for row in lines]
-    
+            raise ValueError(f"Unsupported file type: {path}")
+
+        quotes = []
+        with open(path, 'r', encoding='utf-8') as file:
+            for line in file:
+                parts = line.strip().rsplit(' - ', 1)
+                if len(parts) == 2:
+                    quotes.append(QuoteModel(parts[0].strip(),
+                                             parts[1].strip()))
+        return quotes
+
+
 class Ingestor:
-    """Ingestor class that imports quotes from different file types."""
-    ingestors = [Ingestor_csv, Ingestor_docx, Ingestor_pdf, Ingestor_txt]
+    """Main ingestor class that selects the appropriate ingestor."""
+    ingestors = [IngestorCSV, IngestorDOCX, IngestorPDF, IngestorTXT]
 
     @classmethod
     def parse(cls, path: str) -> List[QuoteModel]:
         for ingestor in cls.ingestors:
             if ingestor.can_ingest(path):
                 return ingestor.parse(path)
-        raise ValueError(f"File Type not supported for {path}")
+        raise ValueError(f"Unsupported file type: {path}")

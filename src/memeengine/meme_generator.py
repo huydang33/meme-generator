@@ -20,6 +20,7 @@ Functions:
     None.
 """
 
+import random
 import tempfile
 import textwrap
 from pathlib import Path
@@ -56,6 +57,49 @@ class MemeGenerator:
         """
         self.image = Image.open(img_path)
 
+    def resize_image(self, width: int = 500):
+        """Resize the image while maintaining the aspect ratio.
+
+        :param width: Desired width of the output meme image (default: 500).
+        """
+        aspect_ratio = width / self.image.width
+        new_w = width
+        new_h = int(self.image.height * aspect_ratio)
+        self.image = self.image.resize((new_w, new_h), Image.NEAREST)
+
+    def wrap_text(self, text: str, width: int = 25):
+        """Wrap the text to fit within the image.
+
+        :param text: The text to be wrapped.
+        :param width: The width of the text wrapper (default: 25).
+        """
+        wrapper = textwrap.TextWrapper(width=width)
+        return "\n".join(wrapper.wrap(text))
+    
+    def add_text_to_image(self, text: str, author: str, new_h: int):
+        """Add the given text and author to the image at random positions.
+        
+        :param text: The text to be overlayed on the image.
+        :param author: The author of the quote to be overlayed on the image.
+        :param new_h: The new height of the image after resizing.
+        """
+        # Load fonts
+        font_body = ImageFont.truetype("memeengine/arial.ttf", 20)
+        font_author = ImageFont.truetype("memeengine/arial.ttf", 25)
+
+        # Draw text on the image at random positions
+        draw = ImageDraw.Draw(self.image)
+
+        # Randomize position for body text and author text
+        text_x = random.randint(50, self.image.width - 300)
+        text_y = random.randint(50, new_h - 150)
+        author_x = random.randint(50, self.image.width - 100)
+        author_y = new_h - random.randint(35, 100)
+
+        # Add the wrapped text and author to the image
+        draw.text((text_x, text_y), text, font=font_body, fill="black")
+        draw.text((author_x, author_y), f"- {author}", font=font_author, fill="black")
+
     def __save_image(self) -> str:
         """
         Save the generated meme image to a file and returns the file path.
@@ -88,25 +132,16 @@ class MemeGenerator:
         
         :return: The path of the saved meme image.
         """
+        # Load the image
         self.load_image(img_path)
 
-        # Resize the image while maintaining the aspect ratio
-        aspect_ratio = width / self.image.width
-        new_w = width
-        new_h = int(self.image.height * aspect_ratio)
-        self.image = self.image.resize((new_w, new_h), Image.NEAREST)
+        # Resize the image
+        self.resize_image(width)
 
         # Wrap text to fit within the image
-        wrapper = textwrap.TextWrapper(width=25)
-        wrapped_text = "\n".join(wrapper.wrap(text))
+        wrapped_text = self.wrap_text(text)
 
-        # Load fonts
-        font_body = ImageFont.truetype("memeengine/arial.ttf", 20)
-        font_author = ImageFont.truetype("memeengine/arial.ttf", 25)
-
-        # Draw text on the image
-        draw = ImageDraw.Draw(self.image)
-        draw.text((140, 30), wrapped_text, font=font_body, fill="black")
-        draw.text((140, new_h - 35), f"- {author}", font=font_author, fill="black")
+        # Add text to the image at random positions
+        self.add_text_to_image(wrapped_text, author, self.image.height)
 
         return self.__save_image()
